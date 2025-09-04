@@ -40,12 +40,15 @@ function App() {
   const {
     address,
     connect,
-    restoreUserData,
     disconnect,
     nativeBalance,
     usdcBalance,
     isConnected,
+    isLoading,
+    error,
   } = useWallet();
+
+  
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
     freelancer: '',
@@ -240,15 +243,26 @@ function App() {
       <div style={{ padding: '2rem', textAlign: 'center' }}>
         <h1>InvoiceCover</h1>
         <button
-          onClick={connect}
+          onClick={handleConnect}
+          disabled={isLoading}
           style={{
             padding: '1rem 2rem',
             fontSize: '1.2rem',
             marginTop: '2rem',
+            background: isLoading ? '#ccc' : '#007bff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
           }}
         >
-          Connect Wallet
+          {isLoading ? 'Connecting...' : 'Connect Wallet'}
         </button>
+        {error && (
+          <p style={{ color: 'red', marginTop: '1rem' }}>
+            Error: {error}
+          </p>
+        )}
       </div>
     );
   }
@@ -412,180 +426,198 @@ function App() {
           </p>
           <button
             onClick={handleConnect}
+            disabled={isLoading}
             style={{
               padding: '1rem 2.5rem',
               fontSize: '1.1rem',
-              background: 'linear-gradient(135deg, #007bff 0%, #0056b3 100%)',
+              background: isLoading 
+                ? '#ccc' 
+                : 'linear-gradient(135deg, #007bff 0%, #0056b3 100%)',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
-              cursor: 'pointer',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
               fontWeight: 'bold',
               boxShadow: '0 4px 12px rgba(0,123,255,0.3)',
               transition: 'all 0.2s ease',
             }}
             onMouseOver={(e) => {
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 6px 16px rgba(0,123,255,0.4)';
+              if (!isLoading) {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 16px rgba(0,123,255,0.4)';
+              }
             }}
             onMouseOut={(e) => {
               e.target.style.transform = 'translateY(0)';
               e.target.style.boxShadow = '0 4px 12px rgba(0,123,255,0.3)';
             }}
           >
-            Connect Wallet
+            {isLoading ? 'Connecting...' : 'Connect Wallet'}
           </button>
+          {error && (
+            <p style={{ color: 'red', marginTop: '1rem' }}>
+              Error: {error}
+            </p>
+          )}
         </div>
       )}
 
-      {/* Create Escrow Form */}
-      <div
-        style={{
-          marginBottom: '2rem',
-          padding: '1.5rem',
-          border: '1px solid #ddd',
-          borderRadius: '8px',
-          background: 'white',
-        }}
-      >
-        <h2 style={{ marginTop: 0 }}>Create New Escrow</h2>
-        <form
-          onSubmit={createEscrow}
-          style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+      {/* Create Escrow Form - Only show when connected */}
+      {isConnected && (
+        <div
+          style={{
+            marginBottom: '2rem',
+            padding: '1.5rem',
+            border: '1px solid #ddd',
+            borderRadius: '8px',
+            background: 'white',
+          }}
         >
-          <div>
-            <label
-              htmlFor="freelancer"
-              style={{
-                display: 'block',
-                marginBottom: '0.5rem',
-                fontWeight: 'bold',
-              }}
-            >
-              Freelancer Address (0x...)
-            </label>
-            <input
-              id="freelancer"
-              type="text"
-              placeholder="0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
-              value={formData.freelancer}
-              onChange={(e) =>
-                setFormData({ ...formData, freelancer: e.target.value })
-              }
-              required
-              style={{
-                padding: '0.75rem',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                width: '100%',
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="amount"
-              style={{
-                display: 'block',
-                marginBottom: '0.5rem',
-                fontWeight: 'bold',
-              }}
-            >
-              Amount (USDC)
-            </label>
-            <input
-              id="amount"
-              type="number"
-              placeholder="100"
-              value={formData.amount}
-              onChange={(e) =>
-                setFormData({ ...formData, amount: e.target.value })
-              }
-              required
-              min="1"
-              step="0.01"
-              style={{
-                padding: '0.75rem',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                width: '100%',
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="dueDate"
-              style={{
-                display: 'block',
-                marginBottom: '0.5rem',
-                fontWeight: 'bold',
-              }}
-            >
-              Due Date
-            </label>
-            <input
-              id="dueDate"
-              type="datetime-local"
-              value={formData.dueDate}
-              onChange={(e) =>
-                setFormData({ ...formData, dueDate: e.target.value })
-              }
-              required
-              style={{
-                padding: '0.75rem',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                width: '100%',
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isCreating}
-            style={{
-              padding: '1rem 1.5rem',
-              background: isCreating ? '#ccc' : '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: isCreating ? 'not-allowed' : 'pointer',
-              fontSize: '1rem',
-              fontWeight: 'bold',
-            }}
+          <h2 style={{ marginTop: 0 }}>Create New Escrow</h2>
+          <form
+            onSubmit={createEscrow}
+            style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
           >
-            {isCreating ? 'Creating Escrow...' : 'Create Escrow'}
-          </button>
-        </form>
-      </div>
+            <div>
+              <label
+                htmlFor="freelancer"
+                style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  fontWeight: 'bold',
+                }}
+              >
+                Freelancer Address (0x...)
+              </label>
+              <input
+                id="freelancer"
+                type="text"
+                placeholder="0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+                value={formData.freelancer}
+                onChange={(e) =>
+                  setFormData({ ...formData, freelancer: e.target.value })
+                }
+                required
+                style={{
+                  padding: '0.75rem',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
 
-      {/* Escrow List */}
-      <EscrowList onAction={handleAction} />
+            <div>
+              <label
+                htmlFor="amount"
+                style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  fontWeight: 'bold',
+                }}
+              >
+                Amount (USDC)
+              </label>
+              <input
+                id="amount"
+                type="number"
+                placeholder="100"
+                value={formData.amount}
+                onChange={(e) =>
+                  setFormData({ ...formData, amount: e.target.value })
+                }
+                required
+                min="1"
+                step="0.01"
+                style={{
+                  padding: '0.75rem',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
 
-      {/* Connection Button (shown when not connected) */}
+            <div>
+              <label
+                htmlFor="dueDate"
+                style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  fontWeight: 'bold',
+                }}
+              >
+              Due Date
+              </label>
+              <input
+                id="dueDate"
+                type="datetime-local"
+                value={formData.dueDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, dueDate: e.target.value })
+                }
+                required
+                style={{
+                  padding: '0.75rem',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isCreating || !isConnected}
+              style={{
+                padding: '1rem 1.5rem',
+                background: isCreating || !isConnected ? '#ccc' : '#007bff',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: isCreating || !isConnected ? 'not-allowed' : 'pointer',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+              }}
+            >
+              {isCreating ? 'Creating Escrow...' : 'Create Escrow'}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Escrow List - Only show when connected */}
+      {isConnected && <EscrowList onAction={handleAction} />}
+
+      {/* Connection reminder (shown when not connected) */}
       {!isConnected && (
         <div style={{ textAlign: 'center', marginTop: '3rem' }}>
           <button
-            onClick={connect}
+            onClick={handleConnect}
+            disabled={isLoading}
             style={{
               padding: '1rem 2rem',
               fontSize: '1.2rem',
-              background: '#007bff',
+              background: isLoading ? '#ccc' : '#007bff',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
-              cursor: 'pointer',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
             }}
           >
-            Connect Wallet
+            {isLoading ? 'Connecting...' : 'Connect Wallet'}
           </button>
           <p style={{ marginTop: '1rem', color: '#666' }}>
             Connect your wallet to create and manage escrows
           </p>
+          {error && (
+            <p style={{ color: 'red', marginTop: '1rem' }}>
+              Error: {error}
+            </p>
+          )}
         </div>
       )}
     </div>

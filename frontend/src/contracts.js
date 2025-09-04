@@ -670,7 +670,7 @@ export const escrowV1Abi = [
 
 // Contract addresses on Local Anvil (Default addresses)
 // These are the first two addresses deployed from your local Anvil node.
-export const MOCK_USDC_ADDRESS = '0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e';
-export const ESCROW_V1_ADDRESS = '0x4A679253410272dd5232B3Ff7cF5dbB88f295319';
+export const MOCK_USDC_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+export const ESCROW_V1_ADDRESS = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
 
 //0x70997970C51812dc3A010C7d01b50e0d17dc79C8
